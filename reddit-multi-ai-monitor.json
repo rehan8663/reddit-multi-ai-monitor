@@ -1,0 +1,824 @@
+{
+  "name": "Multi-AI Reddit Monitor with Auto-Failover",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "712c6ff1-e7b5-4706-a424-dc4cc523aedc",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "36755ff7-0b76-456f-a946-511c5ae12e40",
+              "name": "subreddit_1",
+              "value": "n8n",
+              "type": "string"
+            },
+            {
+              "id": "89b15d96-53fd-41a6-a2e9-ec575101d356",
+              "name": "subreddit_2",
+              "value": "automation",
+              "type": "string"
+            },
+            {
+              "id": "045eb919-1325-4239-9455-32f4aef2dbb1",
+              "name": "subreddit_3",
+              "value": "forhire",
+              "type": "string"
+            },
+            {
+              "id": "00332e5b-5995-4004-8617-147a39f60592",
+              "name": "posts_per_subreddit",
+              "value": "25",
+              "type": "number"
+            },
+            {
+              "id": "6b56e4f6-9e53-4a01-9936-d94dc65b7ea7",
+              "name": "lookback_hours",
+              "value": "24",
+              "type": "number"
+            },
+            {
+              "id": "191e15c7-2a91-4bb8-bb7a-317112095127",
+              "name": "min_score",
+              "value": "7",
+              "type": "number"
+            },
+            {
+              "id": "16abe5ff-5f19-4c1d-9b88-4b1fe56bfb9d",
+              "name": "lead_criteria",
+              "value": "Businesses or individuals who want to HIRE someone (or are clearly willing to pay) to build automations, AI chatbots, AI agents, or workflows using n8n, Make.com, Zapier or custom APIs. Ignore tutorials, showcases, self-promotion, job seekers offering their own services, and general discussion.",
+              "type": "string"
+            },
+            {
+              "id": "949ab56b-7341-4912-ab68-1bc761bc58b6",
+              "name": "telegram_chat_id",
+              "value": "YOUR_TELEGRAM_CHAT_ID",
+              "type": "string"
+            },
+            {
+              "id": "f97e8d11-7a76-40e1-852e-13062a08a25c",
+              "name": "google_sheet_id",
+              "value": "YOUR_GOOGLE_SHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "8ded6a04-9fbe-4081-84a5-0ded4595f86f",
+              "name": "sheet_tab_name",
+              "value": "Leads",
+              "type": "string"
+            },
+            {
+              "id": "4ddbe0cf-0b57-4ddf-85f0-144e712f1e0a",
+              "name": "gemini_primary_model",
+              "value": "gemini-2.5-flash",
+              "type": "string"
+            },
+            {
+              "id": "2f87da4b-c4ed-4b8b-b7d2-0377923860c9",
+              "name": "gemini_backup_model",
+              "value": "gemini-2.5-flash-lite",
+              "type": "string"
+            },
+            {
+              "id": "43b556eb-cc46-4eb4-a242-8d7b5bd60472",
+              "name": "perplexity_model",
+              "value": "sonar",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "28e07c90-d48e-4765-bb8f-d6dda8859886",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "post",
+        "operation": "getAll",
+        "subreddit": "={{ $('Config').first().json.subreddit_1 }}",
+        "limit": "={{ $('Config').first().json.posts_per_subreddit }}",
+        "filters": {
+          "category": "new"
+        }
+      },
+      "id": "e69db327-e2b1-48b9-bec5-fc96ad7bfca7",
+      "name": "Reddit – Subreddit 1",
+      "type": "n8n-nodes-base.reddit",
+      "typeVersion": 1,
+      "position": [
+        460,
+        100
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "post",
+        "operation": "getAll",
+        "subreddit": "={{ $('Config').first().json.subreddit_2 }}",
+        "limit": "={{ $('Config').first().json.posts_per_subreddit }}",
+        "filters": {
+          "category": "new"
+        }
+      },
+      "id": "b26d3012-a0d4-4232-a645-ce6b801c9952",
+      "name": "Reddit – Subreddit 2",
+      "type": "n8n-nodes-base.reddit",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "post",
+        "operation": "getAll",
+        "subreddit": "={{ $('Config').first().json.subreddit_3 }}",
+        "limit": "={{ $('Config').first().json.posts_per_subreddit }}",
+        "filters": {
+          "category": "new"
+        }
+      },
+      "id": "c7f45f39-0fab-4d4d-aac1-b51d320b957e",
+      "name": "Reddit – Subreddit 3",
+      "type": "n8n-nodes-base.reddit",
+      "typeVersion": 1,
+      "position": [
+        460,
+        500
+      ],
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "id": "d5ff72d4-9252-46d5-a8e6-bde0cc58eb12",
+      "name": "Merge All Posts",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clean up raw Reddit posts and keep only fresh, real posts\nconst cfg = $('Config').first().json;\nconst maxAgeH = Number(cfg.lookback_hours) || 24;\nconst nowSec = Date.now() / 1000;\nconst seen = new Set();\nconst out = [];\n\nfor (const item of $input.all()) {\n  const p = item.json;\n  if (!p || !p.id || !p.title) continue;          // skips Reddit error items\n  if (p.stickied) continue;                        // skip pinned mod posts\n  const ageH = (nowSec - Number(p.created_utc || 0)) / 3600;\n  if (ageH > maxAgeH) continue;\n  const postId = p.name || `t3_${p.id}`;\n  if (seen.has(postId)) continue;\n  seen.add(postId);\n\n  out.push({ json: {\n    post_id: postId,\n    subreddit: p.subreddit,\n    title: p.title,\n    body: (p.selftext || '').slice(0, 2500),\n    author: p.author,\n    flair: p.link_flair_text || '',\n    url: `https://www.reddit.com${p.permalink}`,\n    created_iso: new Date(Number(p.created_utc) * 1000).toISOString(),\n    age_hours: Math.round(ageH * 10) / 10,\n    upvotes: p.score,\n    comments: p.num_comments,\n  }});\n}\nreturn out;"
+      },
+      "id": "d8151f28-9214-435f-8251-e8be47b5d8c4",
+      "name": "Normalize & Age Filter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        920,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "removeItemsRepeatedInPreviousExecutions",
+        "dedupeValue": "={{ $json.post_id }}",
+        "options": {}
+      },
+      "id": "cd2c8903-f981-42c3-90f9-6dc2407e9848",
+      "name": "Skip Already-Seen Posts",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const cfg = $('Config').first().json;\nconst p = $json;\n\nconst prompt = `You are a strict lead-qualification analyst.\n\nCRITERIA FOR A HIGH-VALUE LEAD:\n${cfg.lead_criteria}\n\nRead the Reddit post below and judge it by its real intent and context, not by keywords.\n\nScoring guide:\n- 9-10: explicitly hiring / budget mentioned / asks for someone to build it\n- 7-8: clear business need, likely to pay for help\n- 4-6: related topic, weak or unclear buying intent\n- 0-3: not a lead (tutorial, showcase, self-promo, job seeker, off-topic)\n\nReturn ONLY valid JSON, no markdown, exactly this shape:\n{\"is_relevant\": true|false, \"lead_score\": 0-10, \"category\": \"short label\", \"reason\": \"one sentence\", \"suggested_reply\": \"1-2 sentence helpful, non-salesy opener\"}\n\nPOST\nSubreddit: r/${p.subreddit}\nFlair: ${p.flair || 'none'}\nTitle: ${p.title}\nBody: ${p.body || '(no text, link post)'}`;\n\nreturn { json: { ...p, prompt } };"
+      },
+      "id": "92196ba3-0e61-4a3f-84b9-eefe6f1638c9",
+      "name": "Build AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $('Config').first().json.gemini_primary_model }}:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $('Build AI Prompt').item.json.prompt }] }], generationConfig: { temperature: 0.2, responseMimeType: 'application/json' } }) }}",
+        "options": {
+          "timeout": 30000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 6000
+            }
+          }
+        }
+      },
+      "id": "4c692a3c-c861-4244-80a0-3764ffa7d2ea",
+      "name": "AI #1 – Gemini Primary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $('Config').first().json.gemini_backup_model }}:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $('Build AI Prompt').item.json.prompt }] }], generationConfig: { temperature: 0.2, responseMimeType: 'application/json' } }) }}",
+        "options": {
+          "timeout": 30000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 6000
+            }
+          }
+        }
+      },
+      "id": "aeffee14-e17d-4c33-9b86-9bc79d19dc1e",
+      "name": "AI #2 – Gemini Backup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1840,
+        500
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.perplexity.ai/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $('Config').first().json.perplexity_model, temperature: 0.2, messages: [{ role: 'system', content: 'You are a strict lead-qualification classifier. Reply with a single JSON object only.' }, { role: 'user', content: $('Build AI Prompt').item.json.prompt }] }) }}",
+        "options": {
+          "timeout": 30000,
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 6000
+            }
+          }
+        }
+      },
+      "id": "258f441f-7231-4cfa-9fcb-83aa972512ac",
+      "name": "AI #3 – Perplexity Fallback",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2080,
+        700
+      ],
+      "onError": "continueErrorOutput",
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Works for both Gemini and Perplexity responses\nconst cfg = $('Config').first().json;\nconst post = $('Build AI Prompt').item.json;\nconst esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\n\nlet provider = 'Unknown';\nlet raw = '';\nif ($json.candidates) {\n  raw = ($json.candidates[0]?.content?.parts || []).map(x => x.text || '').join('');\n  provider = ($prevNode?.name || '').includes('Backup') ? 'Gemini Backup' : 'Gemini Primary';\n} else if ($json.choices) {\n  raw = $json.choices[0]?.message?.content || '';\n  provider = 'Perplexity';\n}\n\nlet v = {};\nlet parseError = '';\ntry {\n  const cleaned = raw.replace(/```json|```/gi, '').trim();\n  const match = cleaned.match(/\\{[\\s\\S]*\\}/);\n  v = JSON.parse(match ? match[0] : cleaned);\n} catch (e) {\n  parseError = 'Could not parse AI output';\n}\n\nconst score = Math.max(0, Math.min(10, Number(v.lead_score) || 0));\nconst isRelevant = v.is_relevant === true || v.is_relevant === 'true';\nconst qualified = isRelevant && score >= Number(cfg.min_score || 7);\n\nconst telegram_text =\n`🔥 <b>New Reddit Lead</b> — score <b>${score}/10</b>\nr/${esc(post.subreddit)} · u/${esc(post.author)} · ${post.age_hours}h ago\n\n<b>${esc(post.title)}</b>\n\n🏷 ${esc(v.category || 'n/a')}\n💡 ${esc(v.reason || '')}\n✍️ <i>${esc(v.suggested_reply || '')}</i>\n\n🤖 Analysed by: ${provider}\n<a href=\"${post.url}\">Open post on Reddit</a>`;\n\nconst { prompt, ...postData } = post;\nreturn { json: {\n  ...postData,\n  is_relevant: isRelevant,\n  lead_score: score,\n  category: v.category || '',\n  reason: v.reason || parseError,\n  suggested_reply: v.suggested_reply || '',\n  ai_provider: provider,\n  qualified,\n  telegram_text,\n}};"
+      },
+      "id": "b6c86184-5a66-4875-9cf7-db17b8c5c3cc",
+      "name": "Parse AI Verdict",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "32d19616-e0b2-4153-8bdc-b433e42ebffd",
+              "leftValue": "={{ $json.qualified }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "53cc9b20-6185-4b38-a3f9-487a0e6c2e88",
+      "name": "Qualified Lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2560,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegram_chat_id }}",
+        "text": "={{ $json.telegram_text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "20a3cff5-a1cc-4921-aab3-e21a87bb0df2",
+      "name": "Telegram – Lead Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2800,
+        180
+      ],
+      "webhookId": "841255bb-4e5d-4d0d-9587-0f7955383c04"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "89fea3a3-012c-409b-bb88-8b7368bc29c8",
+              "name": "Timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "b6c9b4de-01f1-46fc-9725-e982a8e3499f",
+              "name": "Subreddit",
+              "value": "={{ 'r/' + $json.subreddit }}",
+              "type": "string"
+            },
+            {
+              "id": "85538f39-bf43-4845-ac09-1701afc523ec",
+              "name": "Title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "7a37e556-5b4f-4b64-8eec-7888840dfee5",
+              "name": "Author",
+              "value": "={{ $json.author }}",
+              "type": "string"
+            },
+            {
+              "id": "8cace35a-3800-4b86-ba4b-5ed8553e930b",
+              "name": "Post URL",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "b52bdca4-e667-4c31-a7aa-7552aa5f62c0",
+              "name": "Lead Score",
+              "value": "={{ $json.lead_score }}",
+              "type": "number"
+            },
+            {
+              "id": "f11a6075-f588-4f9e-8c52-6cd6819b4735",
+              "name": "Category",
+              "value": "={{ $json.category }}",
+              "type": "string"
+            },
+            {
+              "id": "52950991-f7dc-4d8a-9d69-1541bfef6f6c",
+              "name": "Reason",
+              "value": "={{ $json.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "17d5029f-0d9a-4e86-be9d-58ac9e63d81b",
+              "name": "Suggested Reply",
+              "value": "={{ $json.suggested_reply }}",
+              "type": "string"
+            },
+            {
+              "id": "21594586-88b6-43f7-ab8e-fa053f8f5040",
+              "name": "AI Provider",
+              "value": "={{ $json.ai_provider }}",
+              "type": "string"
+            },
+            {
+              "id": "3891a23b-ad68-4466-a397-7825245c692f",
+              "name": "Posted At",
+              "value": "={{ $json.created_iso }}",
+              "type": "string"
+            },
+            {
+              "id": "539f0b35-d2c1-431b-99f3-e543c85139e5",
+              "name": "Post ID",
+              "value": "={{ $json.post_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "32c13458-d79c-4255-aae7-b5c76d38e364",
+      "name": "Format Sheet Row",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2800,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Config').first().json.google_sheet_id }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Config').first().json.sheet_tab_name }}",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "a9b603ad-c725-4a24-b288-b089841fcd76",
+      "name": "Google Sheets – Log Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3040,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const post = $('Build AI Prompt').item.json;\nconst esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');\nconst err = $json.error?.message || JSON.stringify($json.error || $json).slice(0, 300);\nreturn { json: { alert_text:\n`⚠️ <b>All 3 AI providers failed</b>\nGemini Primary → Gemini Backup → Perplexity all returned errors.\n\nPost (not analysed): <a href=\"${post.url}\">${esc(post.title)}</a>\nLast error: <code>${esc(err)}</code>\n\nCheck API keys, quotas and billing.` } };"
+      },
+      "id": "e1e4ea94-d171-4268-ab0f-4ccd4e9c2d23",
+      "name": "All AIs Failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2340,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Config').first().json.telegram_chat_id }}",
+        "text": "={{ $json.alert_text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "15870da1-8dd3-4de2-8e40-435bd8f89f5a",
+      "name": "Telegram – System Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2580,
+        900
+      ],
+      "webhookId": "85859736-6d35-4a1f-b89e-01383f067886"
+    },
+    {
+      "parameters": {
+        "content": "## 🛰 Multi-AI Reddit Monitor with Auto-Failover\nWatches 3 subreddits every hour, lets AI judge each new post against your lead criteria, sends qualified leads to **Telegram** and logs them to **Google Sheets**.\n\n**Setup:** edit everything in the **Config** node (subreddits, criteria, min score, Telegram chat ID, Sheet ID, model names). No other node needs editing.",
+        "height": 300,
+        "width": 700,
+        "color": 6
+      },
+      "id": "c4b330ec-e34d-41f2-a842-659160e30165",
+      "name": "Note – Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🔁 Smart Failover Chain\nEvery AI node uses **On Error → Continue (using error output)**.\n\n1. **Gemini Primary** (API key 1)\n2. On 429 / quota / timeout → **Gemini Backup** (API key 2, separate Google project)\n3. Still failing → **Perplexity Sonar** (2 retries)\n4. All down → **Telegram system alert**\n\nThe `AI Provider` column in the sheet shows which model handled each post.",
+        "height": 340,
+        "width": 760,
+        "color": 4
+      },
+      "id": "3168e72a-54fc-42dc-878f-9a6fdc6b162b",
+      "name": "Note – Failover",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📬 Delivery\nOnly posts with `is_relevant = true` **and** `lead_score ≥ min_score` pass.\nSheet tab needs these headers in row 1:\nTimestamp, Subreddit, Title, Author, Post URL, Lead Score, Category, Reason, Suggested Reply, AI Provider, Posted At, Post ID",
+        "height": 260,
+        "width": 520,
+        "color": 5
+      },
+      "id": "c6f59f8f-dd8d-4b0f-b536-232222daaa6e",
+      "name": "Note – Output",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2740,
+        -120
+      ]
+    }
+  ],
+  "connections": {
+    "Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Reddit – Subreddit 1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reddit – Subreddit 2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Reddit – Subreddit 3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reddit – Subreddit 1": {
+      "main": [
+        [
+          {
+            "node": "Merge All Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reddit – Subreddit 2": {
+      "main": [
+        [
+          {
+            "node": "Merge All Posts",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Reddit – Subreddit 3": {
+      "main": [
+        [
+          {
+            "node": "Merge All Posts",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge All Posts": {
+      "main": [
+        [
+          {
+            "node": "Normalize & Age Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize & Age Filter": {
+      "main": [
+        [
+          {
+            "node": "Skip Already-Seen Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Already-Seen Posts": {
+      "main": [
+        [
+          {
+            "node": "Build AI Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Prompt": {
+      "main": [
+        [
+          {
+            "node": "AI #1 – Gemini Primary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI #1 – Gemini Primary": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI #2 – Gemini Backup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI #2 – Gemini Backup": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI #3 – Perplexity Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI #3 – Perplexity Fallback": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Verdict",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "All AIs Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Verdict": {
+      "main": [
+        [
+          {
+            "node": "Qualified Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qualified Lead?": {
+      "main": [
+        [
+          {
+            "node": "Telegram – Lead Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Format Sheet Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Sheet Row": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets – Log Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All AIs Failed": {
+      "main": [
+        [
+          {
+            "node": "Telegram – System Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "active": false,
+  "tags": [],
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
